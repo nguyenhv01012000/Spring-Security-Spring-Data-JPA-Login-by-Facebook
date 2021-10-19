@@ -1,0 +1,24 @@
+# security:
+#   oauth2:
+#     client:
+#       clientId: 571590990729180
+#       clientSecret: f02b8e95c802ffa1e07bb87beb4e4e73
+#       accessTokenUri: https://graph.facebook.com/oauth/access_token
+#       userAuthorizationUri: https://www.facebook.com/dialog/oauth
+#       tokenName: oauth_token
+#       authenticationScheme: query
+#       clientAuthenticationScheme: form
+#     resource:
+#       userInfoUri: https://graph.facebook.com/me  
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+         facebook:
+          clientId: 571590990729180
+          clientSecret: f02b8e95c802ffa1e07bb87beb4e4e73
+          scope:
+           - email
+           - public_profile
