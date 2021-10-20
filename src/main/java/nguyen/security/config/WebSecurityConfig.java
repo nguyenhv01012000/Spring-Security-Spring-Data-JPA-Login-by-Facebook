@@ -23,6 +23,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 
 import nguyen.security.config.jwt.AuthEntryPointJwt;
 import nguyen.security.config.jwt.AuthTokenFilter;
+import nguyen.security.config.jwt.JwtUtils;
 import nguyen.security.config.oauth.CustomOAuth2User;
 import nguyen.security.config.oauth.CustomOAuth2UserService;
 import nguyen.security.config.service.UserDetailsServiceImpl;
@@ -31,10 +32,13 @@ import nguyen.security.config.service.UserService;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(
-		// securedEnabled = true,
-		// jsr250Enabled = true,
+		securedEnabled = true,
+		jsr250Enabled = true,
 		prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+	@Autowired
+	AuthenticationManager authenticationManager;
 
 	@Autowired
 	private CustomOAuth2UserService oauth2UserService;
@@ -47,6 +51,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Autowired
 	private AuthEntryPointJwt unauthorizedHandler;
+
+	@Autowired
+	JwtUtils jwtUtils;
 
 	@Bean
 	public AuthTokenFilter authenticationJwtTokenFilter() {
@@ -77,6 +84,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 			.authorizeRequests().antMatchers("/api/auth/**").permitAll()
 			.antMatchers("/api/test/**").permitAll()
 			.antMatchers("/api/roles/**").permitAll()
+			//.anyRequest().authenticated()
 			.and()
 			.oauth2Login()
 				.loginPage("/login")
@@ -90,9 +98,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 							Authentication authentication) throws IOException, ServletException {
 			            CustomOAuth2User oauthUser = (CustomOAuth2User) authentication.getPrincipal();
 			            
-			            userService.processOAuthPostLogin(oauthUser.getName(),oauthUser.getEmail());
-			 
-			            response.sendRedirect("/api/test/facebook");						
+			            userService.processOAuthPostLogin(oauthUser.getName(), oauthUser.getEmail());
+
+			            response.sendRedirect("/api/test/facebook?name=" + (String)(oauthUser.getName()));						
 					}
 				})
 			.and()
@@ -100,7 +108,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 			.and()
 			.exceptionHandling().accessDeniedPage("/403")
 			;
-			//.anyRequest().authenticated();
 
 		http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 	}
