@@ -2,8 +2,11 @@ package nguyen.security.models;
 
 import javax.persistence.*;
 
+import lombok.Data;
+
 @Entity
 @Table(name = "roles")
+@Data
 public class Role {
     @Id
 	@GeneratedValue(strategy= GenerationType.AUTO)
@@ -20,21 +23,4 @@ public class Role {
     public Role(ERole name) {
 		this.name = name;
 	}
-
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public ERole getName() {
-		return name;
-	}
-
-	public void setName(ERole name) {
-		this.name = name;
-	}
-    
 }

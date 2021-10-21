@@ -1,4 +1,5 @@
 package nguyen.security.controllers;
+
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -17,7 +19,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import nguyen.security.repository.RoleRepository;
+import nguyen.security.repository.UserRepository;
+import nguyen.security.models.ERole;
 import nguyen.security.models.Role;
+import nguyen.security.models.User;
+import nguyen.security.payload.request.SignupRequest;
 
 //CRUD API
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -25,14 +31,17 @@ import nguyen.security.models.Role;
 @RequestMapping("/api")
 public class RoleController {
 
-    @Autowired
-    RoleRepository roleRepository;
+	@Autowired
+	RoleRepository roleRepository;
 
-    @GetMapping("/roles")
+	@Autowired
+	UserRepository userRepository;
+
+	@GetMapping("/roles")
 	public ResponseEntity<Set<Role>> getAllRoles() {
 		try {
-			Set<Role> roles = new HashSet<>(); 
-            roleRepository.findAll().forEach(roles::add);
+			Set<Role> roles = new HashSet<>();
+			roleRepository.findAll().forEach(roles::add);
 
 			if (roles.isEmpty()) {
 				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -55,13 +64,13 @@ public class RoleController {
 		}
 	}
 
-    @PostMapping("/roles")
+	@PostMapping("/roles")
 	public ResponseEntity<?> createRole(@RequestBody Role role) {
 		if (roleRepository.existsByName(role.getName()))
-			return new ResponseEntity<>(String.format("Name '%s' is already used",role.getName()),HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>(String.format("Name '%s' is already used", role.getName()),
+					HttpStatus.BAD_REQUEST);
 		try {
-			Role _role = roleRepository
-					.save(new Role(role.getName()));
+			Role _role = roleRepository.save(new Role(role.getName()));
 			return new ResponseEntity<>(_role, HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -71,8 +80,9 @@ public class RoleController {
 	@PutMapping("/roles/{id}")
 	public ResponseEntity<?> updateRole(@PathVariable("id") long id, @RequestBody Role role) {
 		if (roleRepository.existsByName(role.getName()))
-			return new ResponseEntity<>(String.format("Name '%s' is already used",role.getName()),HttpStatus.BAD_REQUEST);
-			
+			return new ResponseEntity<>(String.format("Name '%s' is already used", role.getName()),
+					HttpStatus.BAD_REQUEST);
+
 		Optional<Role> roleData = roleRepository.findById(id);
 
 		if (roleData.isPresent()) {
@@ -84,18 +94,28 @@ public class RoleController {
 		}
 	}
 
-
-    @DeleteMapping("/roles/{id}")
+	@DeleteMapping("/roles/{id}")
 	public ResponseEntity<HttpStatus> deleteRole(@PathVariable("id") long id) {
 
 		Optional<Role> role = roleRepository.findById(id);
-		if (!role.isPresent()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-	
+		if (!role.isPresent())
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
 		try {
 			roleRepository.deleteById(id);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@GetMapping("/usersByRole/{id}")
+	public ResponseEntity<?> getAllUsersByRole(@PathVariable("id") Long id) {
+		try {
+			List<User> users = userRepository.getUserList(id);
+			return new ResponseEntity<>(users, HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }
